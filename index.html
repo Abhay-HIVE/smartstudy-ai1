@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <link rel="manifest" href="manifest.json">
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<meta name="theme-color" content="#5c6bc0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="SmartStudy AI">
+
+<meta charset="UTF-8">
+<title>SmartStudy AI</title>
+
+<style>
+:root{
+  --primary:#5c6bc0;
+  --accent:#26c6da;
+  --card:#ffffff;
+  --text:#333;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+
+body{
+  font-family:Segoe UI,Arial,sans-serif;
+  background:
+    linear-gradient(rgba(244,246,251,.96),rgba(244,246,251,.96)),
+    url("https://images.unsplash.com/photo-1524995997946-a1c2e315a42f");
+  background-size:cover;
+  background-attachment:fixed;
+  color:var(--text);
+}
+
+/* SPLASH */
+#splash{
+  position:fixed; inset:0;
+  background:linear-gradient(135deg,var(--primary),var(--accent));
+  display:flex; justify-content:center; align-items:center;
+  z-index:9999;
+}
+#splash h1{color:white;font-size:42px}
+
+/* HEADER */
+header{
+  position:sticky; top:0; z-index:1000;
+  background:linear-gradient(135deg,var(--primary),var(--accent));
+  color:white; text-align:center;
+  padding:28px 20px 60px;
+  transition:.4s;
+}
+header.shrink{
+  padding:12px 20px 20px;
+  box-shadow:0 6px 20px rgba(0,0,0,.25);
+}
+
+/* LAYOUT */
+.container{max-width:1100px;margin:20px auto;padding:0 20px}
+
+/* CARD */
+.card{
+  background:var(--card);
+  border-radius:20px;
+  padding:30px;
+  margin-bottom:30px;
+  box-shadow:0 20px 40px rgba(0,0,0,.12);
+}
+
+/* FORM */
+.grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(240px,1fr));
+  gap:18px;
+}
+label{font-weight:600}
+input,select{
+  width:100%; padding:12px;
+  border-radius:10px; border:1px solid #ccc;
+  margin-top:6px;
+}
+
+/* BUTTON */
+button{
+  width:100%; padding:15px; margin-top:20px;
+  border:none; border-radius:16px;
+  background:linear-gradient(135deg,var(--primary),var(--accent));
+  color:white; font-size:16px; font-weight:600;
+  cursor:pointer;
+}
+
+/* TABLE */
+table{width:100%;border-collapse:collapse;margin-top:15px}
+th{background:#eef1ff;padding:12px}
+td{padding:12px;border-bottom:1px solid #eee;text-align:center}
+
+.weak{color:#d32f2f;font-weight:600}
+.normal{color:#2e7d32}
+.break{color:#0277bd;font-style:italic}
+
+/* TOGGLE */
+.toggle{display:flex;gap:10px}
+.toggle button{
+  background:white;color:var(--primary);
+  border:1px solid var(--primary)
+}
+.toggle .active{
+  background:linear-gradient(135deg,var(--primary),var(--accent));
+  color:white;border:none
+}
+</style>
+</head>
+
+<body>
+
+<div id="splash"><h1>SmartStudy AI</h1></div>
+
+<header>
+  <h1>SmartStudy AI</h1>
+  <p>Plan Smart. Study Better.</p>
+</header>
+
+<div class="container">
+
+<div class="card">
+<h2>Student Setup</h2>
+<div class="grid">
+  <div><label>Subjects</label><input id="subjects" placeholder="Maths, ICT, Science"></div>
+  <div><label>Weak Subjects</label><input id="weakSubjects" placeholder="Maths"></div>
+  <div><label>Study Mode</label>
+    <select id="mode">
+      <option value="normal">Normal</option>
+      <option value="exam">Exam</option>
+    </select>
+  </div>
+  <div><label>Study Hours</label><input type="number" id="studyHours" placeholder="4"></div>
+  <div><label>Start Time</label><input type="time" id="startTime"></div>
+</div>
+<button onclick="generate()">Generate Smart Plan</button>
+</div>
+
+<div class="card">
+  <h2>View Planner</h2>
+  <div class="toggle">
+    <button id="dailyBtn" class="active" onclick="showDaily()">Today</button>
+    <button id="weeklyBtn" onclick="showWeekly()">Weekly</button>
+  </div>
+</div>
+
+<div class="card" id="dailyView">
+<h2>Today’s Plan</h2>
+<table>
+<thead><tr><th>Time</th><th>Activity</th></tr></thead>
+<tbody id="daily"></tbody>
+</table>
+</div>
+
+<div class="card" id="weeklyView" style="display:none">
+<h2>Weekly Plan</h2>
+<table>
+<thead><tr><th>Day</th><th>Time</th><th>Activity</th></tr></thead>
+<tbody id="weekly"></tbody>
+</table>
+</div>
+
+</div>
+
+<script>
+/* ---------------- SPLASH SCREEN ---------------- */
+setTimeout(() => {
+  const splash = document.getElementById("splash");
+  if (splash) splash.remove();
+}, 1500);
+
+/* ---------------- STICKY HEADER ---------------- */
+window.addEventListener("scroll", () => {
+  const header = document.querySelector("header");
+  if (window.scrollY > 40) header.classList.add("shrink");
+  else header.classList.remove("shrink");
+});
+
+/* ---------------- TOGGLE VIEWS ---------------- */
+function showDaily() {
+  document.getElementById("dailyView").style.display = "block";
+  document.getElementById("weeklyView").style.display = "none";
+  document.getElementById("dailyBtn").classList.add("active");
+  document.getElementById("weeklyBtn").classList.remove("active");
+}
+
+function showWeekly() {
+  document.getElementById("dailyView").style.display = "none";
+  document.getElementById("weeklyView").style.display = "block";
+  document.getElementById("weeklyBtn").classList.add("active");
+  document.getElementById("dailyBtn").classList.remove("active");
+}
+
+/* ---------------- MAIN AI LOGIC ---------------- */
+function generate() {
+  const subjects = document.getElementById("subjects").value.split(",");
+  const weakSubjects = document.getElementById("weakSubjects").value.split(",");
+  const totalHours = parseInt(document.getElementById("studyHours").value);
+  const mode = document.getElementById("mode").value;
+  const startTime = document.getElementById("startTime").value;
+
+  const daily = document.getElementById("daily");
+  const weekly = document.getElementById("weekly");
+
+  daily.innerHTML = "";
+  weekly.innerHTML = "";
+
+  if (!subjects[0] || !totalHours || !startTime) {
+    alert("Please fill all details correctly");
+    return;
+  }
+
+  const totalMinutes = totalHours * 60;
+
+  /* ---------- TIME FORMAT FUNCTION ---------- */
+  function formatTime(minutes) {
+    let hr = Math.floor(minutes / 60) % 24;
+    let min = minutes % 60;
+    let ampm = hr >= 12 ? "PM" : "AM";
+    hr = hr % 12 || 12;
+    return `${hr}:${min.toString().padStart(2, "0")} ${ampm}`;
+  }
+
+  /* ---------- BUILD PLAN FUNCTION ---------- */
+  function buildPlan(day, tableBody) {
+    let [h, m] = startTime.split(":").map(Number);
+    let currentTime = h * 60 + m;
+    let remaining = totalMinutes;
+    let index = 0;
+
+    while (remaining > 0) {
+      let subject = subjects[index % subjects.length].trim();
+      let isWeak = weakSubjects.map(w => w.trim()).includes(subject);
+
+      let studyDuration = isWeak
+        ? (mode === "exam" ? 45 : 35)
+        : 25;
+
+      if (studyDuration > remaining) studyDuration = remaining;
+
+      let start = formatTime(currentTime);
+      currentTime += studyDuration;
+      let end = formatTime(currentTime);
+
+      tableBody.innerHTML += day
+        ? `<tr><td>${day}</td><td>${start} – ${end}</td><td class="${isWeak ? "weak" : "normal"}">${isWeak ? subject + " (Weak)" : subject}</td></tr>`
+        : `<tr><td>${start} – ${end}</td><td class="${isWeak ? "weak" : "normal"}">${isWeak ? subject + " (Weak)" : subject}</td></tr>`;
+
+      remaining -= studyDuration;
+
+      /* ---------- BREAK ---------- */
+      if (remaining > 0) {
+        let breakTime = remaining >= 5 ? 5 : remaining;
+        let bStart = formatTime(currentTime);
+        currentTime += breakTime;
+        let bEnd = formatTime(currentTime);
+
+        tableBody.innerHTML += day
+          ? `<tr><td>${day}</td><td>${bStart} – ${bEnd}</td><td class="break">Break</td></tr>`
+          : `<tr><td>${bStart} – ${bEnd}</td><td class="break">Break</td></tr>`;
+
+        remaining -= breakTime;
+      }
+
+      index++;
+    }
+  }
+
+  /* ---------- DAILY PLAN ---------- */
+  buildPlan(null, daily);
+
+  /* ---------- WEEKLY PLAN ---------- */
+  const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+  days.forEach(day => buildPlan(day, weekly));
+}
+let deferredPrompt;
+
+window.addEventListener("beforeinstallprompt", (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+
+  const installBtn = document.createElement("button");
+  installBtn.innerText = "Install SmartStudy AI App";
+  installBtn.style.position = "fixed";
+  installBtn.style.bottom = "20px";
+  installBtn.style.right = "20px";
+  installBtn.style.padding = "12px 16px";
+  installBtn.style.borderRadius = "12px";
+  installBtn.style.border = "none";
+  installBtn.style.background = "#5c6bc0";
+  installBtn.style.color = "white";
+  installBtn.style.fontWeight = "600";
+
+  document.body.appendChild(installBtn);
+
+  installBtn.onclick = () => {
+    installBtn.remove();
+    deferredPrompt.prompt();
+  };
+});
+
+</script>
+
+
+</body>
+</html>
+
